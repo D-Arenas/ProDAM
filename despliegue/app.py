@@ -1,1 +1,1 @@
-../Dashboard/app.py
+Dashboard/app.py
