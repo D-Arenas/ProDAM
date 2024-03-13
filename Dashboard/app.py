@@ -40,13 +40,13 @@ def create_scatter_figure():
     return fig
 
 
-def create_gauge_figure_sweing(value):
+def create_gauge_figure(display_value):
     fig = go.Figure(go.Indicator(
         mode = "gauge+number",
-        value = value,
+        value = display_value,
         domain = {'x': [0, 1], 'y': [0, 1]},
         title = {'text': "Productividad Esperada"},
-        gauge = {'axis': {'range': [0, 1]}, 'bar': {'color': '#9775FA'}},
+        gauge = {'axis': {'range': [0, 100], 'ticks': 'outside', 'dtick': 10}, 'bar': {'color': '#9775FA'}},
         number={'suffix': "%", 'font': {'color': '#9775FA'}},  # Color del número
     ))
     fig.update_layout(
@@ -54,9 +54,26 @@ def create_gauge_figure_sweing(value):
         plot_bgcolor='rgba(0,0,0,0)',   # Color de fondo del gráfico
         width=300,  # Ancho de la gráfica
         height=300,  # Altura de la gráfica
+        margin={"t": 0, "b": 0, "l": 0, "r": 0},  # Ajustar los márgenes
         font={"color": '#FCFDFE'},
     )
     return fig
+
+@callback(
+    Output(component_id='gauge-sweing', component_property='figure'),
+    Input(component_id='sweing-slider', component_property='value')
+)
+def create_gauge_figure_sweing(incentive):
+    productivity = predict_productivity("sweing", incentive) * 100
+    return create_gauge_figure(productivity)
+
+@callback(
+    Output(component_id='gauge-finishing', component_property='figure'),
+    Input(component_id='finishing-slider', component_property='value')
+)
+def create_gauge_figure_finishing(smv):
+    productivity = predict_productivity("finishing", smv) * 100
+    return create_gauge_figure(productivity)
 
 
 
@@ -75,7 +92,7 @@ app.layout = html.Div([
             html.Div([
                 html.H2("Incentivos en Sweing Department"),
                 dcc.Graph(id="graph-boxplot", figure=create_boxplot_figure()),
-                html.P("Este gráfico muestra la distribución de la productividad real en el departamento de costura. Cada caja representa un rango de incentivos. A mayor incentivo, mayor productividad."),
+                html.P("Este gráfico muestra la distribución de la productividad real en el departamento de Sweing. Cada caja representa un rango de incentivos. A mayor incentivo, mayor productividad."),
             ], className="card"),
             html.Div([
                 html.H2("Equipos más productivos"),
@@ -85,7 +102,7 @@ app.layout = html.Div([
             html.Div([
                 html.H2("Tiempo extra en Finishing Department"),
                 dcc.Graph(id="graph-scatter", figure=create_scatter_figure()),
-                html.P("Este gráfico muestra la relación entre el tiempo asignado a la tarea y la productividad real en el departamento de acabado."),
+                html.P("Este gráfico muestra la relación entre el tiempo asignado a la tarea y la productividad real en el departamento de Finishing."),
             ], className="card"),
         ], className="main-graphs"),
         html.Section([
@@ -93,17 +110,17 @@ app.layout = html.Div([
             html.Div([
                 html.Div([
                     html.H3("Sweing Department"),
-                    html.P("Este modelo predice la productividad en el departamento de costura."),
+                    html.P("Este modelo predice la productividad en el departamento de Sweing."),
                     html.P("Seleccione el incentivo para obtener una predicción."),
                     dcc.Slider(0, 120, 5, value=20, id='sweing-slider'),
-                    dcc.Graph(id="gauge-sweing", figure=create_gauge_figure_sweing(10)),
+                    dcc.Graph(id="gauge-sweing", figure=create_gauge_figure_sweing(0)),
                 ], className="model-container"),
                 html.Div([
                     html.H3("Finishing Department"),
-                    html.P("Este modelo predice la productividad en el departamento de acabado."),
+                    html.P("Este modelo predice la productividad en el departamento de Finishing."),
                     html.P("Seleccione el tiempo asignado para obtener una predicción."),
-                    dcc.Slider(0, 120, 5, value=20, id='sweing-slider'),
-                    dcc.Graph(id="gauge-sweing", figure=create_gauge_figure_sweing(10)),
+                    dcc.Slider(2, 6, 0.25, value=3, id='finishing-slider'),
+                    dcc.Graph(id="gauge-finishing", figure=create_gauge_figure_sweing(0)),
                 ], className="model-container")
             ], className="main-models"),
         ], className="card main-models-container"),
